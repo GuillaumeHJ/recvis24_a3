@@ -26,7 +26,7 @@ class Net(nn.Module):
 class NASNetMobile(nn.Module):
     def __init__(self, freeze_layers=True):
         super().__init__()  # Just use super() without any arguments in modern Python
-        self.base_model = timm.create_model('nasnetamobile', pretrained=True)
+        self.base_model = timm.create_model('mnasnet_100', pretrained=True)
         self.base_model.classifier = nn.Linear(self.base_model.classifier.in_features, nclasses)
 
         if freeze_layers:
