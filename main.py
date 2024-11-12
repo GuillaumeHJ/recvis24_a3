@@ -9,6 +9,10 @@ from torchvision import datasets
 from model_factory import ModelFactory
 
 import wandb
+from datetime import datetime
+
+# Get the current date and time to use in the run name
+current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 def opts() -> argparse.ArgumentParser:
@@ -214,8 +218,8 @@ def main():
     else:
         print("Using CPU")
 
-    # Initialize Wandb
-    wandb.init(project="image-classification", name="training_experiment", config=args)
+    # Initialize Wandb with a custom run name
+    wandb.init(project="sketch-classification", name=f"training_experiment_{current_time}")
 
 
     # Data initialization and loading
