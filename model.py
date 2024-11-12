@@ -24,21 +24,22 @@ class Net(nn.Module):
     
 
 class NASNetMobile(nn.Module):
-    def __init__(self):
-        super(NASNetMobileModel, self).__init__()
-        # Charger le modèle pré-entraîné NASNetMobile avec timm
+    def __init__(self, freeze_layers=True):
+        super().__init__()  # Just use super() without any arguments in modern Python
         self.base_model = timm.create_model('nasnetamobile', pretrained=True)
-        # Remplacer la dernière couche par une nouvelle couche linéaire adaptée au nombre de classes
         self.base_model.classifier = nn.Linear(self.base_model.classifier.in_features, nclasses)
 
+        if freeze_layers:
+            self.freeze_base_layers()
+
     def freeze_base_layers(self):
-        """Geler les couches de base du modèle pour ne mettre à jour que la dernière couche."""
+        """Freeze the base layers to update only the final classifier."""
         for name, param in self.base_model.named_parameters():
-            if 'classifier' not in name: 
+            if 'classifier' not in name:  # Freeze all layers except the classifier
                 param.requires_grad = False
 
     def forward(self, x):
-        # Passer les données dans le modèle NASNetMobile
         return self.base_model(x)
+
     
 

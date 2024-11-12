@@ -1,7 +1,7 @@
 """Python file to instantite the model and the transform that goes with it."""
 
 from data import data_transforms
-from model import Net
+from model import Net, NASNetMobile
 
 
 class ModelFactory:
