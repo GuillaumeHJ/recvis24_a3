@@ -8,6 +8,8 @@ from torchvision import datasets
 
 from model_factory import ModelFactory
 
+import wandb
+
 
 def opts() -> argparse.ArgumentParser:
     """Option Handling Function."""
@@ -89,7 +91,8 @@ def train(
     use_cuda: bool,
     epoch: int,
     args: argparse.ArgumentParser,
-) -> None:
+) -> float:
+    
     """Default Training Loop.
 
     Args:
@@ -100,8 +103,11 @@ def train(
         epoch (int): Current epoch
         args (argparse.ArgumentParser): Arguments parsed from command line
     """
+    
     model.train()
+    train_loss = 0
     correct = 0
+    total = 0
     for batch_idx, (data, target) in enumerate(train_loader):
         if use_cuda:
             data, target = data.cuda(), target.cuda()
@@ -111,8 +117,12 @@ def train(
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
+
+        train_loss += loss.item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+        total += target.size(0)
+        
         if batch_idx % args.log_interval == 0:
             print(
                 "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
@@ -123,6 +133,9 @@ def train(
                     loss.data.item(),
                 )
             )
+
+    avg_train_loss = train_loss / len(train_loader)
+    accuracy = 100.0 * correct / total
     print(
         "\nTrain set: Accuracy: {}/{} ({:.0f}%)\n".format(
             correct,
@@ -130,6 +143,8 @@ def train(
             100.0 * correct / len(train_loader.dataset),
         )
     )
+
+    return avg_train_loss, accuracy
 
 
 def validation(
@@ -150,6 +165,7 @@ def validation(
     model.eval()
     validation_loss = 0
     correct = 0
+    total = 0
     for data, target in val_loader:
         if use_cuda:
             data, target = data.cuda(), target.cuda()
@@ -160,8 +176,10 @@ def validation(
         # get the index of the max log-probability
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+        total += target.size(0)
 
     validation_loss /= len(val_loader.dataset)
+    accuracy = 100.0 * correct / total
     print(
         "\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)".format(
             validation_loss,
@@ -170,7 +188,7 @@ def validation(
             100.0 * correct / len(val_loader.dataset),
         )
     )
-    return validation_loss
+    return validation_loss, accuracy
 
 
 def main():
@@ -196,6 +214,10 @@ def main():
     else:
         print("Using CPU")
 
+    # Initialize Wandb
+    wandb.init(project="image-classification", name="training_experiment", config=args)
+
+
     # Data initialization and loading
     train_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(args.data + "/train_images", transform=data_transforms),
@@ -216,18 +238,37 @@ def main():
     # Loop over the epochs
     best_val_loss = 1e8
     for epoch in range(1, args.epochs + 1):
+
         # training loop
-        train(model, optimizer, train_loader, use_cuda, epoch, args)
+        train_loss, train_accuracy = train(model, optimizer, train_loader, use_cuda, epoch, args)
+
+         # Log training metrics to Wandb
+        wandb.log({
+            'train_loss': train_loss,
+            'train_accuracy': train_accuracy,
+            'epoch': epoch
+        })
+
         # validation loop
-        val_loss = validation(model, val_loader, use_cuda)
+        val_loss, val_accuracy = validation(model, val_loader, use_cuda)
+
+        # Log validation metrics to Wandb
+        wandb.log({
+            'val_loss': val_loss,
+            'val_accuracy': val_accuracy,
+            'epoch': epoch
+        })
+
         if val_loss < best_val_loss:
             # save the best model for validation
             best_val_loss = val_loss
             best_model_file = args.experiment + "/model_best.pth"
             torch.save(model.state_dict(), best_model_file)
+
         # also save the model every epoch
         model_file = args.experiment + "/model_" + str(epoch) + ".pth"
         torch.save(model.state_dict(), model_file)
+
         print(
             "Saved model to "
             + model_file
@@ -235,6 +276,9 @@ def main():
             + best_model_file
             + "` to generate the Kaggle formatted csv file\n"
         )
+
+    # Finish the Wandb run
+    wandb.finish()
 
 
 if __name__ == "__main__":
