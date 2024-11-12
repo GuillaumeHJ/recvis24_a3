@@ -13,11 +13,15 @@ class ModelFactory:
     def init_model(self):
         if self.model_name == "basic_cnn":
             return Net()
+        elif self.model_name == "nasnet_mobile":
+            return NASNetMobile() 
         else:
             raise NotImplementedError("Model not implemented")
 
     def init_transform(self):
         if self.model_name == "basic_cnn":
+            return data_transforms
+        elif self.model_name == "nasnet_mobile":
             return data_transforms
         else:
             raise NotImplementedError("Transform not implemented")
