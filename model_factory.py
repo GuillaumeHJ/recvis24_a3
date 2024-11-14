@@ -1,7 +1,7 @@
 """Python file to instantite the model and the transform that goes with it."""
 
 from data import data_transforms
-from model import Net, NASNetMobile, DINOv2
+from model import Net, NASNetMobile, DINOv2, EfficientNetB3a
 
 
 class ModelFactory:
@@ -17,11 +17,13 @@ class ModelFactory:
             return NASNetMobile() 
         elif self.model_name == "dinov2":
             return DINOv2()
+        elif self.model_name == "efficientnet_b3a":
+            return EfficientNetB3a()  # Add EfficientNetB3a model
         else:
             raise NotImplementedError("Model not implemented")
 
     def init_transform(self):
-        if self.model_name in ["basic_cnn", "nasnet_mobile", "dinov2"]:
+        if self.model_name in ["basic_cnn", "nasnet_mobile", "dinov2", "efficientnet_b3a"]:
             return data_transforms
         else:
             raise NotImplementedError("Transform not implemented")
@@ -34,3 +36,6 @@ class ModelFactory:
 
     def get_all(self):
         return self.model, self.transform
+
+
+

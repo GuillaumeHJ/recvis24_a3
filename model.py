@@ -64,5 +64,21 @@ class DINOv2(nn.Module):
         return self.fc(hidden_states)
 
 
-    
+class EfficientNetB3a(nn.Module):
+    def __init__(self, freeze_layers=True):
+        super(EfficientNetB3a, self).__init__()
+        self.base_model = timm.create_model('efficientnet_b3a', pretrained=True)
+        self.base_model.classifier = nn.Linear(self.base_model.classifier.in_features, nclasses)
+
+        if freeze_layers:
+            self.freeze_base_layers()
+
+    def freeze_base_layers(self):
+        """Freeze the base layers to update only the final classifier."""
+        for name, param in self.base_model.named_parameters():
+            if 'classifier' not in name:  # Freeze all layers except the classifier
+                param.requires_grad = False
+
+    def forward(self, x):
+        return self.base_model(x)
 
