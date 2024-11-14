@@ -84,6 +84,13 @@ def opts() -> argparse.ArgumentParser:
         metavar="NW",
         help="number of workers for data loading",
     )
+    parser.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        metavar="R",
+        help="path to a previously saved model to resume from (default: None)",
+    )
     args = parser.parse_args()
     return args
 
@@ -218,8 +225,15 @@ def main():
     else:
         print("Using CPU")
 
-    # Initialize Wandb with a custom run name
-    wandb.init(project="sketch-classification", name=f"training_experiment_{current_time}")
+    # If resuming, load the model from the provided checkpoint
+    if args.resume:
+        print(f"Resuming from model: {args.resume}")
+        checkpoint = torch.load(args.resume)
+        model.load_state_dict(checkpoint)
+        print("Model state loaded successfully.")
+    else:
+        # Initialize Wandb with a custom run name
+        wandb.init(project="sketch-classification", name=f"training_experiment_{current_time}")
 
 
     # Data initialization and loading
@@ -270,7 +284,7 @@ def main():
             torch.save(model.state_dict(), best_model_file)
 
         # also save the model every epoch
-        model_file = args.experiment + "/model_" + str(epoch) + ".pth"
+        model_file = args.experiment + "/model_" + current_time + ".pth"
         torch.save(model.state_dict(), model_file)
 
         print(

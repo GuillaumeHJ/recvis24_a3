@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from transformers import AutoImageProcessor, AutoModel
 import timm  
 
 nclasses = 500
@@ -40,6 +41,28 @@ class NASNetMobile(nn.Module):
 
     def forward(self, x):
         return self.base_model(x)
+
+
+class DINOv2(nn.Module):
+    def __init__(self, freeze_layers=True):
+        super(DINOv2, self).__init__()
+        self.processor = AutoImageProcessor.from_pretrained('facebook/dinov2-base')
+        self.base_model = AutoModel.from_pretrained('facebook/dinov2-base')
+        self.fc = nn.Linear(self.base_model.config.hidden_size, nclasses)
+        
+        if freeze_layers:
+            self.freeze_base_layers()
+
+    def freeze_base_layers(self):
+        """Freeze the base model layers to train only the final classifier."""
+        for param in self.base_model.parameters():
+            param.requires_grad = False
+
+    def forward(self, x):
+        inputs = self.processor(images=x, return_tensors="pt").pixel_values
+        hidden_states = self.base_model(inputs)[0][:, 0, :]  # Use CLS token representation
+        return self.fc(hidden_states)
+
 
     
 
