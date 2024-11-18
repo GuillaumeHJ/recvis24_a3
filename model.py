@@ -62,8 +62,14 @@ class DINOv2(nn.Module):
     def forward(self, x):
         # xinputs = self.processor(images=x, return_tensors="pt", do_rescale=False).pixel_values
         # xinputs = xinputs.to(next(self.base_model.parameters()).device)  # Move input to the same device as the model
-        hidden_states = self.base_model(x) #[0][:, 0, :]  # Use CLS token representation
-        return self.fc(hidden_states)
+    
+        # Extract features using the base model
+        outputs = self.base_model(x)  # Returns a BaseModelOutput object
+        hidden_states = outputs.last_hidden_state[:, 0, :]  # CLS token representation
+
+        # Pass CLS token representation through the custom classification head
+        logits = self.fc(hidden_states)
+        return logits
 
 
 class EfficientNetB3a(nn.Module):
