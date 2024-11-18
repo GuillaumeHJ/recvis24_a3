@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoImageProcessor, AutoModelForImageClassification
+from transformers import AutoImageProcessor, AutoModelForImageClassification, AutoModel
 import timm  
 
 nclasses = 500
@@ -48,6 +48,7 @@ class DINOv2(nn.Module):
         super(DINOv2, self).__init__()
         self.processor = AutoImageProcessor.from_pretrained('facebook/dinov2-base')
         self.base_model = AutoModelForImageClassification.from_pretrained('facebook/dinov2-base')
+        # self.base_model = AutoModelForImageClassification.from_pretrained('facebook/dinov2-base')
         self.fc = nn.Linear(self.base_model.config.hidden_size, nclasses)
         
         if freeze_layers:
