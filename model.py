@@ -64,7 +64,7 @@ class DINOv2(nn.Module):
         xinputs = xinputs.to(next(self.base_model.parameters()).device)  # Move input to the same device as the model
     
         # Extract features using the base model
-        outputs = self.base_model(x)  # Returns a BaseModelOutput object
+        outputs = self.base_model(xinputs)  # Returns a BaseModelOutput object
         hidden_states = outputs.last_hidden_state[:, 0, :]  # CLS token representation
 
         # Pass CLS token representation through the custom classification head
