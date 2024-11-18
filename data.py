@@ -1,4 +1,5 @@
 import torchvision.transforms as transforms
+import torch as torch
 import cv2
 import numpy as np
 from PIL import Image
@@ -16,6 +17,7 @@ data_transforms = transforms.Compose(
         transforms.RandomResizedCrop(size=(224, 224), antialias=True),
         transforms.ColorJitter(),
         transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ToDtype(torch.float32, scale=True),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
