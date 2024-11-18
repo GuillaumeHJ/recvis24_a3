@@ -1,8 +1,10 @@
 import torchvision.transforms as transforms
+import torch as torch
 
 data_transforms = transforms.Compose(
     [
         transforms.ToTensor(),
+        transforms.Lambda(lambda x: torch.clamp(x, 0, 1)),  # Clamp values to [0, 1]
         transforms.RandomResizedCrop(size=(224, 224), antialias=True),
         transforms.ColorJitter(),
         transforms.RandomHorizontalFlip(p=0.5),
