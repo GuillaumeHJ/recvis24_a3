@@ -60,8 +60,8 @@ class DINOv2(nn.Module):
             param.requires_grad = False
 
     def forward(self, x):
-        # xinputs = self.processor(images=x, return_tensors="pt", do_rescale=False).pixel_values
-        # xinputs = xinputs.to(next(self.base_model.parameters()).device)  # Move input to the same device as the model
+        xinputs = self.processor(images=x, return_tensors="pt", do_rescale=False).pixel_values
+        xinputs = xinputs.to(next(self.base_model.parameters()).device)  # Move input to the same device as the model
     
         # Extract features using the base model
         outputs = self.base_model(x)  # Returns a BaseModelOutput object
