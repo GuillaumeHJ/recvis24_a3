@@ -59,7 +59,8 @@ class DINOv2(nn.Module):
             param.requires_grad = False
 
     def forward(self, x):
-        xinputs = self.processor(images=x, return_tensors="pt").pixel_values
+        xinputs = self.processor(images=x, return_tensors="pt", do_rescale=False).pixel_values
+        xinputs = xinputs.to(next(self.base_model.parameters()).device)  # Move input to the same device as the model
         hidden_states = self.base_model(xinputs)[0][:, 0, :]  # Use CLS token representation
         return self.fc(hidden_states)
 
