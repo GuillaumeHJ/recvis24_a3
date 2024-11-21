@@ -46,8 +46,8 @@ class NASNetMobile(nn.Module):
 class DINOv2(nn.Module):
     def __init__(self, freeze_layers=True):
         super(DINOv2, self).__init__()
-        self.processor = AutoImageProcessor.from_pretrained('facebook/dinov2-base')
-        self.base_model = AutoModel.from_pretrained('facebook/dinov2-base')
+        self.processor = AutoImageProcessor.from_pretrained('facebook/dinov2-large')
+        self.base_model = AutoModel.from_pretrained('facebook/dinov2-large')
         # self.base_model = AutoModelForImageClassification.from_pretrained('facebook/dinov2-base')
         self.fc = nn.Linear(self.base_model.config.hidden_size, nclasses)
         
